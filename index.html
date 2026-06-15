@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator żerdzi</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: white;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    background-image: url("https://www.gospodarkamorska.pl/files/companies/2465/thumb390x251_GT_Logo_2025.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 55%;
+    opacity: 1;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.block {
+    display: flex;
+    gap: 20px;
+}
+
+.left {
+    flex: 2;
+}
+
+.right {
+    flex: 1;
+    background: rgba(255,255,255,0.6);
+    padding: 15px;
+    border-radius: 10px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+h2 {
+    text-align: center;
+}
+
+input {
+    width: 100%;
+    font-size: 20px;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 2px solid black;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    font-size: 22px;
+    padding: 12px;
+    margin-top: 10px;
+    background: black;
+    color: white;
+    border: none;
+    border-radius: 8px;
+}
+
+pre {
+    margin-top: 15px;
+    background: rgba(255,255,255,0.7);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    white-space: pre-wrap;
+}
+
+.history-item {
+    padding: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    font-size: 14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- ===================== KALKULATOR 1 ===================== -->
+<div class="block">
+
+<div class="left">
+<h2>Kalkulator żerdzi</h2>
+
+<input id="m1" type="number" step="0.001" placeholder="Wpisz metry wykopu">
+
+<button onclick="calc1()">OBLICZ</button>
+
+<pre id="out1"></pre>
+</div>
+
+<div class="right">
+<h3>Historia</h3>
+<div id="history1"></div>
+</div>
+
+</div>
+
+<!-- ===================== KALKULATOR 2 ===================== -->
+<div class="block">
+
+<div class="left">
+<h2>Kalkulator CSH</h2>
+
+<input id="m2" type="number" step="0.001" placeholder="Wpisz metry wykopu">
+
+<button onclick="calc2()">OBLICZ</button>
+
+<pre id="out2"></pre>
+</div>
+
+<div class="right">
+<h3>Historia</h3>
+<div id="history2"></div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let history1 = [];
+let history2 = [];
+
+/* ===================== KALKULATOR 1 ===================== */
+function calc1() {
+
+    let m = parseFloat(document.getElementById("m1").value.replace(",", "."));
+    if (isNaN(m)) {
+        document.getElementById("out1").innerText = "Błąd: wpisz liczbę";
+        return;
+    }
+
+    let target = Math.round(m * 1000);
+
+    const NWJ = 3050;
+    const NWJ2 = 1525;
+    const PROBNIK = 900;
+    const BABY = 611;
+
+    let a = Math.floor(target / NWJ);
+    target -= a * NWJ;
+
+    let b = Math.floor(target / NWJ2);
+    target -= b * NWJ2;
+
+    let c = target > 0 ? 1 : 0;
+    if (c) target -= PROBNIK;
+
+    let d = target > 0 ? 1 : 0;
+    if (d) target -= BABY;
+
+    let total =
+        a * NWJ +
+        b * NWJ2 +
+        c * PROBNIK +
+        d * BABY;
+
+    let waste = total - Math.round(m * 1000);
+
+    document.getElementById("out1").innerText =
+        "NWJ 305 cm: " + a + "\n" +
+        "NWJ 152.5 cm: " + b + "\n" +
+        "Próbnik: " + c + "\n" +
+        "Baby: " + d + "\n\n" +
+        "SUMA: " + (total / 1000).toFixed(3) + " m\n" +
+        "NADMIAR: " + (waste / 1000).toFixed(3) + " m";
+
+    history1.unshift({
+        m, total: total / 1000, waste: waste / 1000
+    });
+
+    renderHistory1();
+}
+
+function renderHistory1() {
+    let html = "";
+    history1.forEach((h, i) => {
+        html += `
+        <div class="history-item">
+            <b>#${i + 1}</b><br>
+            Wykop: ${h.m.toFixed(3)} m<br>
+            Suma: ${h.total.toFixed(3)} m<br>
+            Nadmiar: ${h.waste.toFixed(3)} m
+        </div>`;
+    });
+    document.getElementById("history1").innerHTML = html;
+}
+
+
+/* ===================== KALKULATOR 2 ===================== */
+function calc2() {
+
+    let m = parseFloat(document.getElementById("m2").value.replace(",", "."));
+    if (isNaN(m)) {
+        document.getElementById("out2").innerText = "Błąd: wpisz liczbę";
+        return;
+    }
+
+    let target = Math.round(m * 1000);
+
+    const CSH300 = 3000;
+    const CSH150 = 1500;
+    const CSH1435 = 1435;
+    const APARAT267 = 2670;
+
+    let a = Math.floor(target / CSH300);
+    target -= a * CSH300;
+
+    let b = Math.floor(target / CSH150);
+    target -= b * CSH150;
+
+    let c = Math.floor(target / CSH1435);
+    target -= c * CSH1435;
+
+    let d = target > 0 ? 1 : 0;
+    if (d) target -= APARAT267;
+
+    let total =
+        a * CSH300 +
+        b * CSH150 +
+        c * CSH1435 +
+        d * APARAT267;
+
+    let waste = total - Math.round(m * 1000);
+
+    document.getElementById("out2").innerText =
+        "3m CSH: " + a + "\n" +
+        "150 cm CSH: " + b + "\n" +
+        "143.5 cm CSH: " + c + "\n" +
+        "Aparat 2.67 m: " + d + "\n\n" +
+        "SUMA: " + (total / 1000).toFixed(3) + " m\n" +
+        "NADMIAR: " + (waste / 1000).toFixed(3) + " m";
+
+    history2.unshift({
+        m, total: total / 1000, waste: waste / 1000
+    });
+
+    renderHistory2();
+}
+
+function renderHistory2() {
+    let html = "";
+    history2.forEach((h, i) => {
+        html += `
+        <div class="history-item">
+            <b>#${i + 1}</b><br>
+            Wykop: ${h.m.toFixed(3)} m<br>
+            Suma: ${h.total.toFixed(3)} m<br>
+            Nadmiar: ${h.waste.toFixed(3)} m
+        </div>`;
+    });
+    document.getElementById("history2").innerHTML = html;
+}
+
+</script>
+
+</body>
+</html>
